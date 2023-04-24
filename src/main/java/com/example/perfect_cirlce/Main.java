@@ -22,7 +22,7 @@ import java.util.TimerTask;
 
 public class Main extends Application {
 
-    static final double CENTER_POINT_X = 200;
+    static final double CENTER_POINT_X = 250;
     static double result = 0;
     static final double CENTER_POINT_Y = 200;
     static int countPercent = 0;
@@ -42,6 +42,9 @@ public class Main extends Application {
     static double prev = 0;
     static double curr = 0;
     static double beast = 0;
+    static boolean isToCloseToDot = false;
+    static boolean isTooSlow = false;
+
 
     public static void main(String[] args) {
         launch(args);
@@ -54,6 +57,7 @@ public class Main extends Application {
                 isDraggingAllowed = false;
                 clearStopWatch();
                 text.setText("Too slow");
+                isTooSlow = true;
                 text.setFill(Color.WHITE);
             }
         });
@@ -73,11 +77,11 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         StackPane main = new StackPane();
         VBox vb = new VBox();
-        vb.setMaxWidth(stage.getMaxWidth() - 100);
-        vb.setMaxHeight(stage.getMaxHeight() - 100);
+        vb.setMaxWidth(stage.getMaxWidth() + 100);
+        vb.setMaxHeight(stage.getMaxHeight() + 100);
 
 
-        Scene scene = new Scene(main, stage.getMaxWidth(), stage.getMaxHeight());
+        Scene scene = new Scene(main, stage.getMaxWidth() + 100, stage.getMaxHeight() + 100);
         Canvas canvas = new Canvas(500, 600);
 //        canvas.setStyle("-fx-border-color: yellow; -fx-background-color: gray; -fx-border-width: 2px");
         main.setStyle("-fx-background-color: #000000");
@@ -95,9 +99,8 @@ public class Main extends Application {
         text.setFont(font);
         beastText.setFont(font);
         text.setStyle("-fx-font-size: 50px");
-        vb.setPadding(new Insets(50, 0, 0, 0));
+        vb.setPadding(new Insets(120, 0, 0, 0));
         beastText.setStyle("-fx-font-size: 30px");
-//        text.setStyle("-fx-text-fill: white");
 
         vb.getChildren().add(canvas);
         graphicsContext.setFill(Color.WHITE);
@@ -107,22 +110,6 @@ public class Main extends Application {
         canvas.setOnMouseDragged((event) -> {
             if (isDraggingAllowed) {
                 countPercent++;
-//            text.setText(String.format("%.3f", getLengthBetweenDots(CENTER_POINT_X, CENTER_POINT_Y, event.getX(), event.getY())));
-
-//                if (firstX == event.getX()) {
-//                    countX++;
-//                    System.out.println("countX"+ " " + countX);
-//                }
-//
-//                if (firstY == event.getY()) {
-//                    countY++;
-//                    System.out.println("countY"+ " " + countY);
-//                }
-//                firstX = event.getX()+1;
-//                firstY = event.getY()+1;
-//                if (countX == 2 || countY == 2) {
-//                    isDraggingAllowed = false;
-//                }
 
                 if (isFirstClick) {
                     firstX = event.getX();
@@ -131,35 +118,29 @@ public class Main extends Application {
                     radius = getLengthBetweenDots(CENTER_POINT_X, CENTER_POINT_Y, event.getX(), event.getY());
 
 
-                    double x2 = firstX;
-                    double y1 = firstY;
-                    double y2 = CENTER_POINT_Y;
-                    double x0 = CENTER_POINT_X;
+//                    double x2 = firstX;
+//                    double y1 = firstY;
+//                    double y2 = CENTER_POINT_Y;
+//                    double x0 = CENTER_POINT_X;
+//
+////                    System.out.println("A : " + CENTER_POINT_X + " , " + CENTER_POINT_Y);
+////                    System.out.println("B : " + firstX + " , " + firstY);
+////                    System.out.println("C : " + firstX + " , " + CENTER_POINT_Y);
+//
+//
+//                    double k = ((x2 + CENTER_POINT_X) - x0) / (y2 - y1);
+//                    double b = firstY - (k * firstX);
 
-//                    System.out.println("A : " + CENTER_POINT_X + " , " + CENTER_POINT_Y);
-//                    System.out.println("B : " + firstX + " , " + firstY);
-//                    System.out.println("C : " + firstX + " , " + CENTER_POINT_Y);
 
-
-                    double k = ((x2 + CENTER_POINT_X) - x0) / (y2 - y1);
-                    double b = firstY - (k * firstX);
-
-
-//                    System.out.printf("y = %.1f * x + %.1f%n", k, b);
                     resultPercent = 100.0;
-                    graphicsContext.clearRect(0, 0, 400, 500);
-//                    graphicsContext.setFill(Color.WHITE);
+                    graphicsContext.clearRect(0, 0, 500, 600);
                     graphicsContext.fillOval(CENTER_POINT_X, CENTER_POINT_Y, 10, 10);
                     graphicsContext.setFill(Color.GREEN);
-//
-//                    text.setText(String.format("%.3f", radius));
                     isFirstClick = false;
 
                 }
                 double pointOnline = ((event.getX() - CENTER_POINT_X) / (firstX - CENTER_POINT_X)) - ((event.getY() - CENTER_POINT_Y) / (firstY - CENTER_POINT_Y));
 
-//                boolean isPointOnline = ;
-//                System.out.println(pointOnline);
                 prev = curr;
                 curr = pointOnline;
 
@@ -168,6 +149,7 @@ public class Main extends Application {
                     clearStopWatch();
                     text.setFill(Color.WHITE);
                     text.setText("To close to dot");
+                    isToCloseToDot = true;
                 }
 //
 //                if (firstX == event.getX() && firstY == event.getY()){
@@ -182,12 +164,7 @@ public class Main extends Application {
                     temp = (l * 100) / radius;
                     resultPercent = 100.0 - temp;
 
-//                    if (resultPercent < 1) {
-//                        text.setText("XX.X %");
-//                        isDraggingAllowed = false;
-//                        clearStopWatch();
-//                    }
-                if (resultPercent >= 1) {
+                    if (resultPercent >= 1) {
                         sum += resultPercent;
                         result = sum / countPercent;
                         text.setText(String.format("%.1f %s", result, "%"));
@@ -197,10 +174,6 @@ public class Main extends Application {
                     double l = getLengthBetweenDots(CENTER_POINT_X, CENTER_POINT_Y, event.getX(), event.getY());
                     temp = (l * 100) / radius;
                     resultPercent = temp;
-//                    if (resultPercent < 1) {
-//                        isDraggingAllowed = false;
-//                        clearStopWatch();
-//                        text.setText("XX.X %");
                     if (resultPercent >= 1) {
                         sum += resultPercent;
                         result = sum / countPercent;
@@ -209,8 +182,6 @@ public class Main extends Application {
                 }
                 if (prev >= 0 ^ curr >= 0) {
                     count++;
-//                    System.out.println(prev + " : " + curr);
-//                    System.out.println(count + " " + pointOnline);
                 }
                 if (count == 2) {
                     isDraggingAllowed = false;
@@ -237,6 +208,7 @@ public class Main extends Application {
                 if (len <= closeDotRadius) {
                     text.setFill(Color.WHITE);
                     text.setText("To close to dot");
+                    isToCloseToDot = true;
                     isDraggingAllowed = false;
                     clearStopWatch();
                 }
@@ -247,12 +219,18 @@ public class Main extends Application {
         });
 
         canvas.setOnMouseReleased((event) -> {
+            if (count < 2 && !isTooSlow && !isToCloseToDot) {
+                text.setText("Draw a full circle");
+                text.setFill(Color.WHITE);
+            }
             prev = 0;
             curr = 0;
             count = 0;
             radius = 0;
             sum = 0;
             countPercent = 0;
+            isTooSlow = false;
+            isToCloseToDot = false;
             isFirstClick = true;
             isDraggingAllowed = true;
             clearStopWatch();
